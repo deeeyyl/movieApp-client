@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { api } from "../api";
 
 function RegisterPage() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    password: ""
-  });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [message, setMessage] = useState("");
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,7 +12,17 @@ function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await api("/users/register", "POST", form);
+      const res = await fetch(`${API_URL}/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Register failed: ${res.status} - ${text}`);
+      }
+
       setMessage("Registered successfully! You can now log in.");
     } catch (err) {
       setMessage(err.message);

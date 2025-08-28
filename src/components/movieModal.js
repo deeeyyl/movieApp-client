@@ -2,21 +2,19 @@ import { useState, useContext } from "react";
 import MovieContext from "../context/movieContext";
 
 function MovieModal({ movie, onClose }) {
-  const { updateMovieComments } = useContext(MovieContext); // use context directly
+  const { addComment } = useContext(MovieContext); // use context directly
   const [comment, setComment] = useState("");
 
-  const handleAddComment = () => {
-    if (!comment.trim()) return;
+  const handleAddComment = async () => {
+  if (!comment.trim()) return;
 
-    const newComment = {
-      _id: Date.now().toString(),
-      userId: "currentUser",
-      comment: comment.trim(),
-    };
-
-    updateMovieComments(movie._id, newComment);
+  try {
+    await addComment(movie._id, comment); // send comment to backend
     setComment("");
-  };
+  } catch (err) {
+    console.error("Failed to add comment:", err);
+  }
+};
 
   if (!movie) return null;
 

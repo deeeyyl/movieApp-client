@@ -1,9 +1,14 @@
 import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import MovieContext from "../context/movieContext";
+import UserContext from "../context/userContext";
 import MovieCard from "../components/movieCard";
 
 function MoviesPage() {
   const { movies, addMovie } = useContext(MovieContext);
+  const { user, logout } = useContext(UserContext);
+  const navigate = useNavigate();
+  
 
   const [form, setForm] = useState({
     title: "",
@@ -12,12 +17,9 @@ function MoviesPage() {
     description: "",
     genre: "",
   });
-
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +37,7 @@ function MoviesPage() {
       director: form.director.trim() || "Unknown",
       description: form.description.trim() || "No description yet.",
       genre: form.genre.trim() || "Unknown",
-      comments: [], // start with empty comments
+      comments: [],
     };
 
     try {
@@ -47,56 +49,43 @@ function MoviesPage() {
     }
   };
 
+  const handleLogout = () => {
+    logout();          // clears user state and token
+    navigate("/");     // redirect to homepage
+  };
+
   return (
     <div style={{ padding: "20px" }}>
-      <h1>🎬 Movie List</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>🎬 Movie List</h1>
+        {user && (
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "5px 10px",
+              borderRadius: "5px",
+              border: "none",
+              background: "#dc3545",
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
+        )}
+      </div>
 
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          name="title"
-          placeholder="Title"
-          value={form.title}
-          onChange={handleChange}
-          style={{ marginRight: "10px", marginBottom: "5px" }}
-          required
-        />
-        <input
-          type="number"
-          name="year"
-          placeholder="Year"
-          value={form.year}
-          onChange={handleChange}
-          style={{ marginRight: "10px", marginBottom: "5px" }}
-          required
-        />
-        <input
-          type="text"
-          name="director"
-          placeholder="Director"
-          value={form.director}
-          onChange={handleChange}
-          style={{ marginRight: "10px", marginBottom: "5px" }}
-        />
-        <input
-          type="text"
-          name="genre"
-          placeholder="Genre"
-          value={form.genre}
-          onChange={handleChange}
-          style={{ marginRight: "10px", marginBottom: "5px" }}
-        />
-        <input
-          type="text"
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          style={{ marginRight: "10px", marginBottom: "5px" }}
-        />
-        <br />
-        <button type="submit">Add Movie</button>
-      </form>
+      {user?.isAdmin && (
+        <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
+          <input type="text" name="title" placeholder="Title" value={form.title} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} required />
+          <input type="number" name="year" placeholder="Year" value={form.year} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} required />
+          <input type="text" name="director" placeholder="Director" value={form.director} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} />
+          <input type="text" name="genre" placeholder="Genre" value={form.genre} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} />
+          <input type="text" name="description" placeholder="Description" value={form.description} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} />
+          <br />
+          <button type="submit">Add Movie</button>
+        </form>
+      )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 

@@ -1,10 +1,13 @@
 import { useState, useContext } from "react";
 import MovieModal from "./movieModal";
 import MovieContext from "../context/movieContext";
+import UserContext from "../context/userContext";
 
 function MovieCard({ movie }) {
+  const { movies, setMovies, deleteMovie } = useContext(MovieContext);
+  const { user } = useContext(UserContext); // to check admin
   const [showModal, setShowModal] = useState(false);
-  const { movies, setMovies } = useContext(MovieContext); // we'll need to add setMovies to context
+  const [editing, setEditing] = useState(false);
 
   const updateMovieComments = (movieId, newComment) => {
     const updatedMovies = movies.map((m) => {
@@ -14,6 +17,18 @@ function MovieCard({ movie }) {
       return m;
     });
     setMovies(updatedMovies);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete "${movie.title}"?`)) {
+      deleteMovie(movie._id);
+    }
+  };
+
+  const handleEdit = (updatedMovie) => {
+    const updatedMovies = movies.map((m) => (m._id === movie._id ? updatedMovie : m));
+    setMovies(updatedMovies);
+    setEditing(false);
   };
 
   return (
@@ -46,6 +61,13 @@ function MovieCard({ movie }) {
           <p><em>No comments yet.</em></p>
         )}
 
+        {user?.isAdmin && (
+          <div style={{ marginTop: "10px" }}>
+            <button onClick={() => setEditing(true)} style={{ marginRight: "5px" }}>Edit</button>
+            <button onClick={handleDelete} style={{ marginRight: "5px" }}>Delete</button>
+          </div>
+        )}
+
         <button
           onClick={() => setShowModal(true)}
           style={{
@@ -67,6 +89,14 @@ function MovieCard({ movie }) {
           movie={movie}
           onClose={() => setShowModal(false)}
           updateMovieComments={updateMovieComments}
+        />
+      )}
+
+      {editing && (
+        <MovieModal
+          movie={movie}
+          onClose={() => setEditing(false)}
+          onSave={handleEdit} // call when saving edits
         />
       )}
     </>
