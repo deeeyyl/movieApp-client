@@ -39,8 +39,29 @@ export const MovieProvider = ({ children }) => {
     fetchMovies();
   }, [API_URL]);
 
-  const deleteMovie = (id) => {
+  const deleteMovie = async (id) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${API_URL}/movies/deleteMovie/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Failed to delete movie: ${res.status} - ${text}`);
+    }
+
+    // Remove movie from local state
     setMovies((prevMovies) => prevMovies.filter((m) => m._id !== id));
+  } catch (err) {
+    console.error("Error deleting movie:", err);
+    setError(err.message);
+  }
 };
 
   const addComment = async (movieId, commentText) => {
