@@ -7,7 +7,6 @@ export const MovieProvider = ({ children }) => {
   const [error, setError] = useState("");
   const API_URL = process.env.REACT_APP_API_URL;
 
-  // Fetch movies on mount
   useEffect(() => {
     const fetchMovies = async () => {
       try {
@@ -26,12 +25,11 @@ export const MovieProvider = ({ children }) => {
 
         const data = await res.json();
 
-        // Ensure movies is always an array
         setMovies(Array.isArray(data) ? data : data.movies || []);
         setError("");
       } catch (err) {
         console.error("Error fetching movies:", err);
-        setMovies([]); // fallback to empty array
+        setMovies([]);
         setError(err.message);
       }
     };
@@ -65,47 +63,42 @@ export const MovieProvider = ({ children }) => {
 };
 
   const addComment = async (movieId, commentText) => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${API_URL}/movies/addComment/${movieId}`, {
-      method: "PATCH", // PATCH since backend uses it
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ comment: commentText }),
-    });
+    try {
+      const res = await fetch(`${API_URL}/movies/addComment/${movieId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ comment: commentText }) // ✅ correct key
+      });
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Failed to add comment: ${res.status} - ${text}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to add comment");
+      }
+
+      const data = await res.json();
+      console.log("Response from backend:", data);
+
+      if (!data.updatedMovie) {
+        throw new Error("Backend did not return updated movie");
+      }
+
+      const updatedMovie = data.updatedMovie;
+
+      setMovies((prev) =>
+        prev.map((movie) =>
+          movie._id === updatedMovie._id ? updatedMovie : movie
+        )
+      );
+
+      return updatedMovie.comments[updatedMovie.comments.length - 1];
+    } catch (err) {
+      throw err;
     }
+  };
 
-    const data = await res.json();
-
-    // Ensure data.comment is valid
-    const newComment = data.comment || {
-      _id: Date.now().toString(),
-      comment: commentText,
-      userId: "currentUser",
-    };
-
-    setMovies(prev =>
-      prev.map(movie =>
-        movie._id === movieId
-          ? { ...movie, comments: [...(movie.comments || []), newComment] }
-          : movie
-      )
-    );
-
-    return newComment;
-  } catch (err) {
-    console.error("Error adding comment:", err);
-    throw err;
-  }
-};
-
-  // Add movie (for your MoviesPage add form)
   const addMovie = async (newMovie) => {
   try {
     const token = localStorage.getItem("token");
@@ -126,7 +119,6 @@ export const MovieProvider = ({ children }) => {
 
     const savedMovie = await res.json();
 
-    // Update local state with the saved movie
     setMovies((prev) => [...prev, savedMovie]);
   } catch (err) {
     console.error("Movie API error:", err);

@@ -1,13 +1,10 @@
 import React, { createContext, useState, useEffect } from "react";
 
-// Create context
 const UserContext = createContext();
 
-// Provider component
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // { email, isAdmin }
+  const [user, setUser] = useState(null);
 
-  // On mount, read token from localStorage and decode
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {

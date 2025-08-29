@@ -50,8 +50,8 @@ function MoviesPage() {
   };
 
   const handleLogout = () => {
-    logout();          // clears user state and token
-    navigate("/");     // redirect to homepage
+    logout();
+    navigate("/");
   };
 
   return (
@@ -83,7 +83,7 @@ function MoviesPage() {
           <input type="text" name="genre" placeholder="Genre" value={form.genre} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} />
           <input type="text" name="description" placeholder="Description" value={form.description} onChange={handleChange} style={{ marginRight: "10px", marginBottom: "5px" }} />
           <br />
-          <button type="submit">Add Movie</button>
+          <button type="submit" id="addMovie">Add Movie</button>
         </form>
       )}
 
